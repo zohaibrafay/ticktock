@@ -37,36 +37,36 @@ class TimesheetService {
     return r.data;
   }
 
-  async updateWeek(weekId: string, payload: Partial<Omit<Week, "id">>): Promise<Week> {
-    const res = await http.put<ApiEnvelope<unknown>>(`${this.base}/${weekId}`, payload);
+  async updateWeek(wId: string, payload: Partial<Omit<Week, "id">>): Promise<Week> {
+    const res = await http.put<ApiEnvelope<unknown>>(`${this.base}/${wId}`, payload);
     const r = weekSchema.safeParse(res.data);
     if (!r.success) throw new ValidationError("Bad server response", extractErrors(r.error));
     http.clearCache(this.base);
     return r.data;
   }
 
-  async deleteWeek(weekId: string): Promise<void> {
-    await http.delete(`${this.base}/${weekId}`);
+  async deleteWeek(wId: string): Promise<void> {
+    await http.delete(`${this.base}/${wId}`);
     http.clearCache(this.base);
   }
 
   // ─── Entries ──────────────────────────────────────
 
-  async fetchEntries(weekId: string): Promise<Entry[]> {
-    const res = await http.get<ApiEnvelope<unknown[]>>(`${this.base}/${weekId}/entries`);
+  async fetchEntries(wId: string): Promise<Entry[]> {
+    const res = await http.get<ApiEnvelope<unknown[]>>(`${this.base}/${wId}/entries`);
     const entries: Entry[] = [];
     for (const item of res.data) {
       const r = entrySchema.safeParse(item);
       if (r.success) entries.push(r.data);
     }
     // Merge into storage
-    const existing = storage.getEntries().filter((e) => e.wId !== weekId);
+    const existing = storage.getEntries().filter((e) => e.wId !== wId);
     storage.setEntries([...existing, ...entries]);
     return entries;
   }
 
-  async createEntry(weekId: string, payload: { date: string; hours: number; description: string; project: string; workType: string }): Promise<Entry> {
-    const res = await http.post<ApiEnvelope<unknown>>(`${this.base}/${weekId}/entries`, payload);
+  async createEntry(wId: string, payload: { date: string; hrs: number; description: string; project: string; workType: string }): Promise<Entry> {
+    const res = await http.post<ApiEnvelope<unknown>>(`${this.base}/${wId}/entries`, payload);
     const r = entrySchema.safeParse(res.data);
     if (!r.success) throw new ValidationError("Bad server response", extractErrors(r.error));
     storage.upsertEntry(r.data);
@@ -74,8 +74,8 @@ class TimesheetService {
     return r.data;
   }
 
-  async updateEntry(weekId: string, entryId: string, payload: Partial<Omit<Entry, "id" | "weekId">>): Promise<Entry> {
-    const res = await http.put<ApiEnvelope<unknown>>(`${this.base}/${weekId}/entries/${entryId}`, payload);
+  async updateEntry(wId: string, entryId: string, payload: Partial<Omit<Entry, "id" | "wId">>): Promise<Entry> {
+    const res = await http.put<ApiEnvelope<unknown>>(`${this.base}/${wId}/entries/${entryId}`, payload);
     const r = entrySchema.safeParse(res.data);
     if (!r.success) throw new ValidationError("Bad server response", extractErrors(r.error));
     storage.upsertEntry(r.data);
@@ -83,8 +83,8 @@ class TimesheetService {
     return r.data;
   }
 
-  async deleteEntry(weekId: string, entryId: string): Promise<void> {
-    await http.delete(`${this.base}/${weekId}/entries/${entryId}`);
+  async deleteEntry(wId: string, entryId: string): Promise<void> {
+    await http.delete(`${this.base}/${wId}/entries/${entryId}`);
     storage.removeEntry(entryId);
     http.clearCache(this.base);
   }

@@ -95,7 +95,7 @@ export default function WeekDetailPage({
       project: string;
       workType: string;
       description: string;
-      hours: number;
+      hrs: number;
     }) => {
       if (modal.entry) {
         await updateEntry(modal.entry.id, payload);
