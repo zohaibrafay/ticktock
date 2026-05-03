@@ -3,6 +3,7 @@ export type Option = {
   value: string;
 };
 export const WEEKRANGE_OPTIONS: Option[] = [
+  { label: "ALL", value: "All" },
   { label: "This Week", value: "this_week" },
   { label: "Last Week", value: "last_week" },
   { label: "This Month", value: "this_month" },

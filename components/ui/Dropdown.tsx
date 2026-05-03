@@ -42,7 +42,6 @@ function DropdownComponent<T>({
                     }
                 }}
             >
-                <option value="">{placeholder}</option>
 
                 {options.map((option) => (
                     <option key={getValue(option)} value={getValue(option)}>

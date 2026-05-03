@@ -21,17 +21,16 @@ import { Dropdown } from "@/components/ui/Dropdown";
 
 
 interface PaginationType {
-    pSize: number;
-    pNumber: number;
-    totalLength: number;
+  pSize: number;
+  pNumber: number;
 }
 interface Filters {
   weekRange?: string;
   status?: string;
 }
 interface SortType {
-    col: SortColumn;
-    dir: "asc" | "desc";
+  col: SortColumn;
+  dir: "asc" | "desc";
 }
 
 
@@ -39,21 +38,21 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const { weeks: rawWeeks, loading, error, fetchWeeks } = useWeeks();
   const router = useRouter();
-  const [pagination, setPagination] = useState<PaginationType>({pSize: DEFAULTPAGINATION.DEFAULT_PAGE_SIZE,pNumber: DEFAULTPAGINATION.DEFAULT_PAGE_NUMBER,totalLength: DEFAULTPAGINATION.DEFAULT_LENGTH});
+  const [pagination, setPagination] = useState<PaginationType>({ pSize: DEFAULTPAGINATION.DEFAULT_PAGE_SIZE, pNumber: DEFAULTPAGINATION.DEFAULT_PAGE_NUMBER });
   const [filters, setFilters] = useState<Filters>({});
-  const [sort, setSort] = useState<SortType>({col: "weekNumber",dir: "asc"});
+  const [sort, setSort] = useState<SortType>({ col: "weekNumber", dir: "asc" });
 
 
   useEffect(() => {
-  if (status === "loading") return;
+    if (status === "loading") return;
 
-  if (!session) {
-    router.push("/login");
-    return;
-  }
+    if (!session) {
+      router.push("/login");
+      return;
+    }
 
-  fetchWeeks();
-}, [status, session, fetchWeeks, router]);
+    fetchWeeks();
+  }, [status, session, fetchWeeks, router]);
 
 
   const weeks = useMemo(() => {
@@ -61,41 +60,52 @@ export default function DashboardPage() {
     return entries.length > 0 ? syncStatuses(rawWeeks, entries) : rawWeeks;
   }, [rawWeeks]);
 
-  const dateRange = useMemo(() => (filters.weekRange ? resolveDateRange(filters.weekRange) : null),
-    [filters.weekRange],
-  );
+
 
   const filtered = useMemo(() => {
+    const dateRange = filters.weekRange
+      ? resolveDateRange(filters.weekRange)
+      : null;
+
     return weeks
       .filter((w) => {
         if (filters.status && filters.status !== "All" && w.status !== filters.status) {
           return false;
         }
+
         if (dateRange) {
           const ws = getParseDate(w.startDate);
           const we = getParseDate(w.endDate);
-          debugger;
+
           if (we < dateRange.from || ws > dateRange.to) {
             return false;
           }
         }
+
         return true;
       })
-      .sort((a, b) => compareWeeks(a, b, sort.col, sort.dir));
-  }, [weeks, filters.status, dateRange, sort]);
+      .sort((a, b) =>
+        compareWeeks(a, b, sort.col, sort.dir)
+      );
+  }, [weeks, filters.status, filters.weekRange, sort.col, sort.dir]);
 
-    useEffect(() => {
-    setPagination((prev) => ({ ...prev, totalLength: filtered.length, pNumber: 1 }));
-  }, [filtered]);
-   const handlePagination = useCallback((pNumber: number, pSize: number) => {
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      pNumber: 1,
+    }));
+  }, [filters, sort.col, sort.dir]);
+
+  const handlePagination = useCallback((pNumber: number, pSize: number) => {
     setPagination((prev) => ({ ...prev, pNumber, pSize }));
   }, []);
+
   const paginated = useMemo(() => {
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pagination.pSize));
-  const safePage = Math.min(pagination.pNumber, totalPages);
-  const start = (safePage - 1) * pagination.pSize;
-  return filtered.slice(start, start + pagination.pSize);
-}, [filtered, pagination.pNumber, pagination.pSize]);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pagination.pSize));
+    const safePage = Math.min(pagination.pNumber, totalPages);
+    const start = (safePage - 1) * pagination.pSize;
+    return filtered.slice(start, start + pagination.pSize);
+  }, [filtered, pagination.pNumber, pagination.pSize]);
 
   const handleSort = useCallback((col: SortColumn) => {
     setPagination((prev) => ({ ...prev, pNumber: 1 }));
@@ -119,7 +129,7 @@ export default function DashboardPage() {
           Your Timesheets
         </h1>
         <div className="flex flex-wrap gap-3 mb-2">
-            <Dropdown<Option>
+          <Dropdown<Option>
             options={WEEKRANGE_OPTIONS}
             value={
               WEEKRANGE_OPTIONS.find((o) => o.value === filters.weekRange) || null
@@ -131,19 +141,19 @@ export default function DashboardPage() {
             getLabel={(o: Option) => o.label}
             getValue={(o: Option) => o.value}
             placeholder="Date Range"
-            />          
+          />
 
-            <Dropdown<Option>
-              options={STATUS_OPTIONS}
-              value={STATUS_OPTIONS.find((o) => o.value === filters.status) || null}
-              onChange={(val: Option) => {
-                setFilters((prev) => ({ ...prev, status: val.value || undefined }));
-                setPagination((prev) => ({ ...prev, pNumber: 1 }));
-              }}
-              getLabel={(o: Option) => o.label}
-              getValue={(o: Option) => o.value}
-              placeholder="Status"
-            />
+          <Dropdown<Option>
+            options={STATUS_OPTIONS}
+            value={STATUS_OPTIONS.find((o) => o.value === filters.status) || null}
+            onChange={(val: Option) => {
+              setFilters((prev) => ({ ...prev, status: val.value || undefined }));
+              setPagination((prev) => ({ ...prev, pNumber: 1 }));
+            }}
+            getLabel={(o: Option) => o.label}
+            getValue={(o: Option) => o.value}
+            placeholder="Status"
+          />
         </div>
 
         {!loading && error && (
@@ -239,7 +249,8 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
-        <Pagination {...pagination} handlePagination={handlePagination} />
+        <Pagination pSize={pagination.pSize} pNumber={pagination.pNumber} totalLength={filtered.length} handlePagination={handlePagination}
+        />
       </div>
     </div>
   );
