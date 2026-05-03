@@ -1,4 +1,4 @@
-# AI TickTock — Professional Timesheet Management
+# TickTock — Professional Timesheet Management
 
 AI TickTock is a high-performance, enterprise-ready timesheet management application built with a modern tech stack. It features a robust service-oriented architecture, comprehensive data validation, and a premium user interface designed for speed and reliability.
 
